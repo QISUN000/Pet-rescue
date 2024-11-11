@@ -187,6 +187,6 @@ function buildMarkerContent(title) {
 
 <!-- Updated Google Maps API script loading -->
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7jHJijFFPuaiTlq29s26V9e5CGXuvk-4&libraries=places&callback=initMap">
 </script>
 <?php require_once 'footer.php'; ?>
