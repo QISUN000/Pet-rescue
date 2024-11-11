@@ -4,6 +4,8 @@ define('DB_USER', 'serveruser');
 define('DB_PASS', 'password');
 define('DB_NAME', 'pet_rescue');
 
+define('MAPS_API_KEY', 'AIzaSyB7jHJijFFPuaiTlq29s26V9e5CGXuvk-4');
+
 class Database {
     private static $instance = null;
     private $conn;
