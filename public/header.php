@@ -25,8 +25,8 @@
                 <div class="navbar-nav ms-auto">
                     <a class="nav-link" href="index.php">Home</a>
                     <a class="nav-link" href="search.php">Adopt</a>
-                    <a class="nav-link" href="#">Donate</a>
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="donate.php">Donate</a>
+                    <a class="nav-link" href="contact.php">Contact</a>
                     <a class="nav-link" href="login.php"><i class="bi bi-person"></i></a>
                 </div>
             </div>

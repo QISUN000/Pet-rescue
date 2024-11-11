@@ -53,7 +53,7 @@ $featured_pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
                  
                   
                     <div class="col-md-3">
-                        <a href="#" class="text-decoration-none">
+                        <a href="donate.php" class="text-decoration-none">
                           
                             <div>Donate</div>
                         </a>
