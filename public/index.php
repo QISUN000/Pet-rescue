@@ -45,7 +45,7 @@ $featured_pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="col-md-8">
                 <div class="row text-center">
                     <div class="col-md-3">
-                        <a href="#" class="text-decoration-none">
+                        <a href="search" class="text-decoration-none">
                            
                             <div>Adopt</div>
                         </a>

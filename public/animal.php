@@ -41,16 +41,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
 
-        // You could also store the adoption request details if needed
-        // For now, just update the status
+        // Store adoption request
+        $sql = "INSERT INTO adoption_requests (animal_id, name, email, phone, message) 
+                VALUES (:animal_id, :name, :email, :phone, :message)";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([
+            ':animal_id' => $id,
+            ':name' => $name,
+            ':email' => $email,
+            ':phone' => $phone,
+            ':message' => $message
+        ]);
         
         $db->commit();
         $success_message = "Thank you for your interest in adopting " . htmlspecialchars($animal['name']) . ". We will contact you soon!";
     } catch (Exception $e) {
-        $db->rollBack();
-        $error_message = "An error occurred. Please try again.";
-    }
-}
+        $db->rollBack();}}
+
 ?>
 
 <div class="container my-5">

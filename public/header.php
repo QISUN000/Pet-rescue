@@ -24,7 +24,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto">
                     <a class="nav-link" href="index.php">Home</a>
-                    <a class="nav-link" href="animal.php">Adopt</a>
+                    <a class="nav-link" href="search.php">Adopt</a>
                     <a class="nav-link" href="#">Donate</a>
                     <a class="nav-link" href="#">Contact</a>
                     <a class="nav-link" href="login.php"><i class="bi bi-person"></i></a>
