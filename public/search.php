@@ -126,6 +126,7 @@ $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?= htmlspecialchars($animal['species']) ?>
                                 </small>
                             </p>
+                            <a href="animal.php?id=<?= $animal['id'] ?>" class="btn btn-primary">View Details</a>
                         </div>
                     </div>
                 </div>

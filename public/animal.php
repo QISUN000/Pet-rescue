@@ -33,12 +33,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
 
-    // Here you could:
-    // 1. Send email notification to admin
-    // 2. Store in database if you want to track applications
-    // 3. Show success message to user
+    try {
+        $db->beginTransaction();
 
-    $success_message = "Thank you for your interest in adopting " . htmlspecialchars($animal['name']) . ". We will contact you soon!";
+        // Update animal status to 'pending'
+        $sql = "UPDATE animals SET status = 'pending' WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':id' => $id]);
+
+        // You could also store the adoption request details if needed
+        // For now, just update the status
+        
+        $db->commit();
+        $success_message = "Thank you for your interest in adopting " . htmlspecialchars($animal['name']) . ". We will contact you soon!";
+    } catch (Exception $e) {
+        $db->rollBack();
+        $error_message = "An error occurred. Please try again.";
+    }
 }
 ?>
 

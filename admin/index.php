@@ -44,9 +44,9 @@ $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
                                 <td>
                                     <?php if ($animal['filename']): ?>
-                                        <img src="../public/uploads/<?= htmlspecialchars($animal['filename']) ?>" 
-                                             alt="<?= htmlspecialchars($animal['name']) ?>"
-                                             style="max-width: 50px; max-height: 50px; object-fit: cover;">
+                                        <img src="../public/uploads/<?= htmlspecialchars($animal['filename']) ?>"
+                                            alt="<?= htmlspecialchars($animal['name']) ?>"
+                                            style="max-width: 50px; max-height: 50px; object-fit: cover;">
                                     <?php else: ?>
                                         <div class="bg-light" style="width: 50px; height: 50px;"></div>
                                     <?php endif; ?>
@@ -54,19 +54,19 @@ $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <td><?= htmlspecialchars($animal['name']) ?></td>
                                 <td><?= htmlspecialchars($animal['species']) ?></td>
                                 <td><?= htmlspecialchars($animal['breed']) ?></td>
+                               
                                 <td><?= htmlspecialchars($animal['category_name'] ?? 'No Category') ?></td>
                                 <td>
-                                    <span class="badge <?= $animal['status'] === 'available' ? 'bg-success' : 'bg-secondary' ?>">
+                                    <span
+                                        class="badge <?= $animal['status'] === 'available' ? 'bg-success' : 'bg-secondary' ?>">
                                         <?= htmlspecialchars($animal['status']) ?>
                                     </span>
                                 </td>
                                 <td>
                                     <a href="edit.php?id=<?= $animal['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteModal" 
-                                            data-id="<?= $animal['id'] ?>"
-                                            data-name="<?= htmlspecialchars($animal['name']) ?>">
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal" data-id="<?= $animal['id'] ?>"
+                                        data-name="<?= htmlspecialchars($animal['name']) ?>">
                                         Delete
                                     </button>
                                 </td>
@@ -102,20 +102,20 @@ $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle delete modal
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
-            const name = button.getAttribute('data-name');
-            
-            deleteModal.querySelector('#deleteAnimalId').value = id;
-            deleteModal.querySelector('#deleteAnimalName').textContent = name;
-        });
-    }
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle delete modal
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+
+                deleteModal.querySelector('#deleteAnimalId').value = id;
+                deleteModal.querySelector('#deleteAnimalName').textContent = name;
+            });
+        }
+    });
 </script>
 
 <?php require_once 'admin_footer.php'; ?>
