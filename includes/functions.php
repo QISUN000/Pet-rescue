@@ -1,4 +1,28 @@
+
 <?php
+require_once '../vendor/autoload.php';
+
+function sendNotification($event, $details) {
+    try {
+        $transport = (new Swift_SmtpTransport('sandbox.smtp.mailtrap.io', 2525))
+            ->setUsername('62c5d59351bffe')
+            ->setPassword('9f89eb0d7bf43b');
+
+        $mailer = new Swift_Mailer($transport);
+
+        $message = (new Swift_Message('Pet Rescue Notification'))
+            ->setFrom(['noreply@petrescue.com' => 'Pet Rescue'])
+            ->setTo(['lukesun2023@gmail.com'])
+            ->setBody("Event: $event\n\nDetails: $details");
+
+        $result = $mailer->send($message);
+        error_log("Email sent: " . ($result ? 'success' : 'failed'));
+        return $result;
+    } catch (Exception $e) {
+        error_log("Email error: " . $e->getMessage());
+        return false;
+    }
+}
 // Validation for animal data
 function validateAnimalData($data) {
     $errors = [];

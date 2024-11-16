@@ -1,5 +1,6 @@
 <?php
 require_once '../config/database.php';
+require_once '../includes/functions.php';
 require_once 'header.php';
 
 $db = Database::getInstance()->getConnection();
@@ -34,9 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
 
     try {
-        $db->beginTransaction();
+        $db = Database::getInstance()->getConnection();
+        $db->beginTransaction();  // Move this inside try block
 
-        // Update animal status to 'pending'
+        // Update animal status
         $sql = "UPDATE animals SET status = 'pending' WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->execute([':id' => $id]);
@@ -55,8 +57,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $db->commit();
         $success_message = "Thank you for your interest in adopting " . htmlspecialchars($animal['name']) . ". We will contact you soon!";
+        $notification_sent = sendNotification(
+            'New Adoption Request',
+            "Pet: {$animal['name']}\nRequester: {$email}"
+        );
+        if ($notification_sent) {
+            $success_message .= " Notification sent.";
+        } else {
+            $success_message .= " (Note: Admin notification failed)";
+        }
+        
     } catch (Exception $e) {
-        $db->rollBack();}}
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        $error_message = "An error occurred. Please try again.";
+    }
+}
 
 ?>
 
