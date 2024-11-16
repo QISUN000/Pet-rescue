@@ -6,39 +6,7 @@ require_once 'admin_header.php';
 
 $db = Database::getInstance()->getConnection();
 
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        switch ($_POST['action']) {
-            case 'add':
-                $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-                $sql = "INSERT INTO categories (name) VALUES (:name)";
-                $stmt = $db->prepare($sql);
-                $stmt->execute([':name' => $name]);
-                break;
-
-            case 'edit':
-                $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-                $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-                $sql = "UPDATE categories SET name = :name WHERE id = :id";
-                $stmt = $db->prepare($sql);
-                $stmt->execute([':name' => $name, ':id' => $id]);
-                break;
-
-            case 'delete':
-                $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-                $sql = "DELETE FROM categories WHERE id = :id";
-                $stmt = $db->prepare($sql);
-                $stmt->execute([':id' => $id]);
-                break;
-        }
-        // Redirect to prevent form resubmission
-        header('Location: categories.php');
-        exit();
-    }
-}
-
-// Fetch all categories
+// Fetch all categories with animal count
 $sql = "SELECT c.*, COUNT(ac.animal_id) as animal_count 
         FROM categories c 
         LEFT JOIN animal_categories ac ON c.id = ac.category_id 
@@ -57,6 +25,9 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </button>
     </div>
 
+    <!-- Success/Error Message Div -->
+    <div id="message-container"></div>
+
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
@@ -70,23 +41,19 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </thead>
                     <tbody>
                         <?php foreach ($categories as $category): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($category['name']) ?></td>
+                            <tr id="category-row-<?= $category['id'] ?>">
+                                <td class="category-name"><?= htmlspecialchars($category['name']) ?></td>
                                 <td><?= $category['animal_count'] ?></td>
                                 <td>
                                     <button class="btn btn-sm btn-primary edit-category" 
                                             data-id="<?= $category['id'] ?>"
-                                            data-name="<?= htmlspecialchars($category['name']) ?>"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editCategoryModal">
+                                            data-name="<?= htmlspecialchars($category['name']) ?>">
                                         Edit
                                     </button>
                                     <?php if ($category['animal_count'] == 0): ?>
                                         <button class="btn btn-sm btn-danger delete-category"
                                                 data-id="<?= $category['id'] ?>"
-                                                data-name="<?= htmlspecialchars($category['name']) ?>"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteCategoryModal">
+                                                data-name="<?= htmlspecialchars($category['name']) ?>">
                                             Delete
                                         </button>
                                     <?php endif; ?>
@@ -101,99 +68,228 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- Add Category Modal -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1">
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST">
-                <input type="hidden" name="action" value="add">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Category</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Category Name</label>
+                    <input type="text" id="add-category-name" class="form-control" required>
+                    <div class="invalid-feedback">Please enter a category name.</div>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Category Name</label>
-                        <input type="text" name="name" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Category</button>
-                </div>
-            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="add-category">Add Category</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Edit Category Modal -->
-<div class="modal fade" id="editCategoryModal" tabindex="-1">
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST">
-                <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="id" id="edit-category-id">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Category</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-category-id">
+                <div class="mb-3">
+                    <label class="form-label">Category Name</label>
+                    <input type="text" id="edit-category-name" class="form-control" required>
+                    <div class="invalid-feedback">Please enter a category name.</div>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Category Name</label>
-                        <input type="text" name="name" id="edit-category-name" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-category">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Delete Category Modal -->
-<div class="modal fade" id="deleteCategoryModal" tabindex="-1">
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST">
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="id" id="delete-category-id">
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete Category</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete <span id="delete-category-name"></span>?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </div>
-            </form>
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCategoryModalLabel">Delete Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="delete-category-name"></span>?</p>
+                <input type="hidden" id="delete-category-id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle Edit Category Modal
-    document.querySelectorAll('.edit-category').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const name = this.getAttribute('data-name');
-            document.getElementById('edit-category-id').value = id;
-            document.getElementById('edit-category-name').value = name;
+$(document).ready(function() {
+    // Add Category
+    $('#add-category').click(function() {
+        const name = $('#add-category-name').val();
+        
+        if (!name.trim()) {
+            $('#add-category-name').addClass('is-invalid');
+            return;
+        }
+
+        $.ajax({
+            url: 'add_category.php',
+            method: 'POST',
+            data: { name: name },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    $('#message-container').html(
+                        `<div class="alert alert-danger alert-dismissible fade show">
+                            ${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`
+                    );
+                }
+            },
+            error: function() {
+                $('#message-container').html(
+                    `<div class="alert alert-danger alert-dismissible fade show">
+                        An error occurred while adding the category.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`
+                );
+            }
         });
     });
 
-    // Handle Delete Category Modal
-    document.querySelectorAll('.delete-category').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const name = this.getAttribute('data-name');
-            document.getElementById('delete-category-id').value = id;
-            document.getElementById('delete-category-name').textContent = name;
+    // Edit Category
+    $('.edit-category').click(function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        
+        $('#edit-category-id').val(id);
+        $('#edit-category-name').val(name);
+        $('#editCategoryModal').modal('show');
+    });
+
+    $('#save-category').click(function() {
+        const id = $('#edit-category-id').val();
+        const name = $('#edit-category-name').val();
+        
+        if (!name.trim()) {
+            $('#edit-category-name').addClass('is-invalid');
+            return;
+        }
+
+        $.ajax({
+            url: 'update_category.php',
+            method: 'POST',
+            data: { 
+                id: id,
+                name: name 
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $(`#category-row-${id} .category-name`).text(name);
+                    $(`#category-row-${id} .edit-category`).data('name', name);
+                    
+                    $('#message-container').html(
+                        `<div class="alert alert-success alert-dismissible fade show">
+                            Category updated successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`
+                    );
+                    
+                    $('#editCategoryModal').modal('hide');
+                } else {
+                    $('#message-container').html(
+                        `<div class="alert alert-danger alert-dismissible fade show">
+                            ${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`
+                    );
+                }
+            },
+            error: function() {
+                $('#message-container').html(
+                    `<div class="alert alert-danger alert-dismissible fade show">
+                        An error occurred while updating the category.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`
+                );
+            }
         });
+    });
+
+    // Delete Category
+    $('.delete-category').click(function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        
+        $('#delete-category-id').val(id);
+        $('#delete-category-name').text(name);
+        $('#deleteCategoryModal').modal('show');
+    });
+
+    $('#confirm-delete').click(function() {
+        const id = $('#delete-category-id').val();
+        
+        $.ajax({
+            url: 'delete_category.php',
+            method: 'POST',
+            data: { id: id },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $(`#category-row-${id}`).remove();
+                    $('#deleteCategoryModal').modal('hide');
+                    
+                    $('#message-container').html(
+                        `<div class="alert alert-success alert-dismissible fade show">
+                            Category deleted successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`
+                    );
+                } else {
+                    $('#message-container').html(
+                        `<div class="alert alert-danger alert-dismissible fade show">
+                            ${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`
+                    );
+                }
+            },
+            error: function() {
+                $('#message-container').html(
+                    `<div class="alert alert-danger alert-dismissible fade show">
+                        An error occurred while deleting the category.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`
+                );
+            }
+        });
+    });
+
+    // Clear validation on input
+    $('#add-category-name, #edit-category-name').on('input', function() {
+        $(this).removeClass('is-invalid');
+    });
+
+    // Reset forms when modals are closed
+    $('.modal').on('hidden.bs.modal', function() {
+        $(this).find('input:not([type=hidden])').val('').removeClass('is-invalid');
     });
 });
 </script>
