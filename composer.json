@@ -1,0 +1,13 @@
+{
+    "name": "qisun/petrescue",
+    "description": "none",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Qisun\\Petrescue\\": "src/"
+        }
+    },
+    "require": {
+        "swiftmailer/swiftmailer": "^6.3"
+    }
+}
